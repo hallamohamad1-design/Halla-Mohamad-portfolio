@@ -169,6 +169,7 @@ export default function App() {
       detailedDescription: "Engineered specifically to facilitate lightweight remote diagnostic inspections of active network nodes without heavy CLI tools. Features color-coded threat meters based on port exploit patterns.",
       tech: ["Python", "Flask", "React", "Socket Protocol Standards"],
       links: {
+        live: "https://port-scanner-sand.vercel.app/",
         github: "https://github.com/hallamohamad1-design"
       },
       features: [
@@ -177,6 +178,24 @@ export default function App() {
         "Console-styled logs for socket diagnostics."
       ],
       role: "Network Logic & Interface Designer"
+    },
+    {
+      id: "mind_2_mind",
+      title: "Mind 2 Mind wellness hub",
+      category: "ai",
+      description: "An advanced mental wellness synchronizer utilizing neuro-linguistic insights and empathetic interactive patterns.",
+      detailedDescription: "Designed to explore cognitive state tracking, daily mood architectures, and personalized stress-relief pipelines using sophisticated front-end aesthetics and clean state management.",
+      tech: ["React", "AI Insights", "Tailwind CSS", "Analytics Graphs"],
+      links: {
+        live: "https://mind2mind2.vercel.app/",
+        github: "https://github.com/hallamohamad1-design"
+      },
+      features: [
+        "Dynamic emotional resonance gauges.",
+        "Interactive journaling sandboxes with keyword tagging.",
+        "Tailored guidance loops based on custom diagnostic surveys."
+      ],
+      role: "Lead UI Designer & Empathetic Programmer"
     },
     {
       id: "delay_dsp",

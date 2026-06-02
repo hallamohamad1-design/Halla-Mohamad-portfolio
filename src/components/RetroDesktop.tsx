@@ -4,7 +4,7 @@ import {
   Folder,
   Terminal,
   Gamepad2,
-  Paintbrush,
+  Search,
   Settings,
   User,
   X,
@@ -111,13 +111,17 @@ export default function RetroDesktop({
   const [windows, setWindows] = useState<WindowState[]>([
     { id: "bio", title: "bio_notepads.txt", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, x: 40, y: 40 },
     { id: "projects", title: "Project Explorer", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, x: 100, y: 70 },
-    { id: "arcade", title: "Halla's Arcade Cabinet (Snake v2.4)", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 11, x: 150, y: 60 },
-    { id: "canvas", title: "Paint & Visual Canvas", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, x: 220, y: 80 },
+    { id: "arcade", title: "Vodex Vibes Studio Cabinet", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 11, x: 150, y: 60 },
+    { id: "search", title: "Search Results Viewer", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, x: 220, y: 80 },
     { id: "terminal", title: "System Command Shell (aest.sh)", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 12, x: 80, y: 120 },
     { id: "settings", title: "Control Panel Preferences", isOpen: false, isMinimized: false, isMaximized: false, zIndex: 10, x: 280, y: 160 }
   ]);
 
   const [topZIndex, setTopZIndex] = useState(20);
+
+  // Search Results States
+  const [terminalSearchQuery, setTerminalSearchQuery] = useState("");
+  const [terminalSearchResults, setTerminalSearchResults] = useState<Project[]>([]);
 
   // Open a specific window and bring to front
   const openWindow = (id: string) => {
@@ -227,214 +231,54 @@ export default function RetroDesktop({
   // Start menu overlay toggling
   const [isStartOpen, setIsStartOpen] = useState(false);
 
-  // -------------------------------------------------------------
-  // ARCADE CABINE GAME INTERNAL ENGINE (Classic Snake game perfectly coded)
-  // -------------------------------------------------------------
-  const [snake, setSnake] = useState<{x: number, y: number}[]>([{x: 10, y: 10}]);
-  const [food, setFood] = useState({x: 5, y: 5});
-  const [direction, setDirection] = useState<"UP" | "DOWN" | "LEFT" | "RIGHT">("RIGHT");
-  const [gameScore, setGameScore] = useState(0);
-  const [gameHighScore, setGameHighScore] = useState(12);
-  const [gameState, setGameState] = useState<"IDLE" | "PLAYING" | "OVER">("IDLE");
-  const gridWidth = 24;
-  const gridHeight = 18;
-  const gameIntervalRef = useRef<number | null>(null);
-
-  const resetSnakeGame = () => {
-    setSnake([{x: 10, y: 10}, {x: 9, y: 10}, {x: 8, y: 10}]);
-    setFood({
-      x: Math.floor(Math.random() * (gridWidth - 2)) + 1,
-      y: Math.floor(Math.random() * (gridHeight - 2)) + 1
-    });
-    setDirection("RIGHT");
-    setGameScore(0);
-    setGameState("PLAYING");
-    playRetroBeep(440, 0.15, "triangle");
-  };
-
-  useEffect(() => {
-    if (gameState !== "PLAYING") {
-      if (gameIntervalRef.current) clearInterval(gameIntervalRef.current);
-      return;
-    }
-
-    const moveSnake = () => {
-      setSnake(prev => {
-        const head = { ...prev[0] };
-        switch (direction) {
-          case "UP": head.y -= 1; break;
-          case "DOWN": head.y += 1; break;
-          case "LEFT": head.x -= 1; break;
-          case "RIGHT": head.x += 1; break;
-        }
-
-        // Boundary Checks & collision
-        if (head.x < 0 || head.x >= gridWidth || head.y < 0 || head.y >= gridHeight) {
-          setGameState("OVER");
-          playRetroBeep(180, 0.35, "sawtooth"); // Deep fail synth
-          return prev;
-        }
-
-        // Self Eat check
-        for (const segment of prev) {
-          if (segment.x === head.x && segment.y === head.y) {
-            setGameState("OVER");
-            playRetroBeep(180, 0.35, "sawtooth");
-            return prev;
-          }
-        }
-
-        const newSnake = [head, ...prev];
-
-        // Eat food check
-        if (head.x === food.x && head.y === food.y) {
-          // Play classic coin gather chime
-          playRetroBeep(880, 0.1, "sine");
-          setTimeout(() => playRetroBeep(1318, 0.15, "sine"), 80);
-          setGameScore(s => {
-            const next = s + 1;
-            if (next > gameHighScore) setGameHighScore(next);
-            return next;
-          });
-          setFood({
-            x: Math.floor(Math.random() * (gridWidth - 2)) + 1,
-            y: Math.floor(Math.random() * (gridHeight - 2)) + 1
-          });
-        } else {
-          newSnake.pop();
-        }
-
-        return newSnake;
-      });
-    };
-
-    gameIntervalRef.current = setInterval(moveSnake, 130) as any;
-    return () => {
-      if (gameIntervalRef.current) clearInterval(gameIntervalRef.current);
-    };
-  }, [gameState, direction, food]);
-
-  // Key listeners for Snake Cabinet Game
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (gameState !== "PLAYING") return;
-      
-      // Prevent browser default window scrolling while gaming
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(e.key)) {
-        e.preventDefault();
-      }
-
-      switch (e.key) {
-        case "ArrowUp":
-          if (direction !== "DOWN") setDirection("UP");
-          break;
-        case "ArrowDown":
-          if (direction !== "UP") setDirection("DOWN");
-          break;
-        case "ArrowLeft":
-          if (direction !== "RIGHT") setDirection("LEFT");
-          break;
-        case "ArrowRight":
-          if (direction !== "LEFT") setDirection("RIGHT");
-          break;
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [gameState, direction]);
-
 
   // -------------------------------------------------------------
-  // PAINT CANVAS ENGINE (Classic drawing on Retro PC pixel artwork)
+  // PAINT CANVAS ENGINE DECOMMISSIONED FOR PROFESSIONAL TERMINAL SCANNER
   // -------------------------------------------------------------
-  const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [isPainting, setIsPainting] = useState(false);
-  const [paintColor, setPaintColor] = useState("#8b5cf6"); // Amethyst primary
-  const [brushSize, setBrushSize] = useState(4);
-
-  const colorsPalette = [
-    "#000000", "#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#ffffff"
-  ];
-
-  const handlePaintStart = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = paintCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-    setIsPainting(true);
-  };
-
-  const handlePaintMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isPainting) return;
-    const canvas = paintCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    ctx.strokeStyle = paintColor;
-    ctx.lineWidth = brushSize;
-    ctx.lineCap = "round";
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.stroke();
-  };
-
-  const clearPaintCanvas = () => {
-    const canvas = paintCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.fillStyle = "#1e293b"; // dark container background
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    playRetroBeep(415, 0.1, "sine");
-  };
-
-  // Initialize canvas with sleek slate background on mount or load
-  useEffect(() => {
-    const canvas = paintCanvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "#1e293b";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-      }
-    }
-  }, [windows.find(w => w.id === "canvas")?.isOpen]);
 
 
   // -------------------------------------------------------------
   // TERMINAL ENGINE COMMAND PROCESSOR
   // -------------------------------------------------------------
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
-    "HallaOS Framework [v1.0.28]",
-    "System online. Type 'help' to review available node routines.",
+    "HallaOS Command Framework [v1.5.0]",
+    "System online. Type 'help' or search about projects/anything to open a dynamic tab.",
     ""
   ]);
   const [terminalInput, setTerminalInput] = useState("");
   const terminalLogsEndRef = useRef<HTMLDivElement | null>(null);
 
   const processTerminalCommand = () => {
-    const cmd = terminalInput.trim().toLowerCase();
-    if (!cmd) return;
+    const inputCleaned = terminalInput.trim();
+    if (!inputCleaned) return;
 
+    const lowerInput = inputCleaned.toLowerCase();
     const newLogs = [...terminalLogs, `guest@halla-pc:~$ ${terminalInput}`];
+
+    let cmd = lowerInput;
+    let queryParam = "";
+
+    if (lowerInput.startsWith("search ")) {
+      cmd = "search";
+      queryParam = inputCleaned.substring(7).trim();
+    } else if (!["help", "bio", "about", "skills", "gpa", "contact", "matrix", "clear"].includes(lowerInput)) {
+      cmd = "search";
+      queryParam = inputCleaned;
+    }
 
     switch (cmd) {
       case "help":
         newLogs.push(
           "Available microkernel commands:",
           "  help           Display this routine support index.",
+          "  search <query> Deep-scan and match portfolio assets.",
           "  bio / about    Print Halla's high-fidelity biography.",
           "  skills         List engineered technical stack capabilities.",
           "  gpa            Print academic statistics records.",
           "  contact        Output secure network channels (phone & mail).",
           "  matrix         Trigger scrolling vector digital rains.",
-          "  clear          Clean current CLI socket log buffers."
+          "  clear          Clean current CLI socket log buffers.",
+          "  *(Type anything else to search and auto-open as another tab!)"
         );
         playRetroBeep(784, 0.05, "sine");
         break;
@@ -486,6 +330,53 @@ export default function RetroDesktop({
           "01010101 HALLA_MEMBER_GRADUATE_OPTIMIZED_GPA_3.96"
         );
         playRetroBeep(987, 0.15, "sawtooth");
+        break;
+      case "search":
+        const matches = projects.filter(p => 
+          p.title.toLowerCase().includes(queryParam.toLowerCase()) ||
+          p.description.toLowerCase().includes(queryParam.toLowerCase()) ||
+          p.tech.some(t => t.toLowerCase().includes(queryParam.toLowerCase())) ||
+          p.category.toLowerCase().includes(queryParam.toLowerCase())
+        );
+
+        setTerminalSearchQuery(queryParam);
+        setTerminalSearchResults(matches);
+        
+        newLogs.push(
+          `System scan: indexing database for "${queryParam}"...`
+        );
+
+        if (matches.length > 0) {
+          newLogs.push(
+            `Successfully matched ${matches.length} matching candidate projects.`,
+            `Spawning interactive 'Search Results Viewer' container window...`
+          );
+        } else {
+          newLogs.push(
+            `Scanning completed: 0 direct matches found in portfolio.`,
+            `Suggestions:`,
+            ` - Type "port" to check out the Network Port Scanner`,
+            ` - Type "mind" to review Mind 2 Mind wellness hub`,
+            ` - Type "delay" to test the hardware DSP simulator`,
+            ` - Type "vibes" to access Vodex Vibes interactive stream`
+          );
+        }
+
+        // Open search results window
+        setTimeout(() => {
+          openWindow("search");
+        }, 300);
+
+        // Try to trigger external browser tab ONLY if a project match is indeed found and has a live link
+        try {
+          if (matches.length > 0 && matches[0].links.live) {
+            window.open(matches[0].links.live, "_blank");
+            newLogs.push(`Browser Node: Loaded live demo link for "${matches[0].title}" in another tab.`);
+          }
+        } catch (e) {
+          // block bypass
+        }
+        playRetroBeep(700, 0.1, "triangle");
         break;
       case "clear":
         setTerminalLogs([]);
@@ -554,19 +445,19 @@ export default function RetroDesktop({
             <Gamepad2 className="w-5 h-5" />
           </div>
           <span className="text-[10px] font-bold text-white tracking-tight mt-1.5 drop-shadow-sm leading-tight truncate w-full">
-            Arcade_Unit
+            Vodex_Vibes
           </span>
         </div>
 
         <div 
-          onClick={() => openWindow("canvas")}
+          onClick={() => openWindow("search")}
           className="flex flex-col items-center justify-center p-2.5 w-20 rounded-xl hover:bg-white/10 border border-transparent hover:border-white/15 cursor-pointer text-center group transition-colors"
         >
-          <div className="w-10 h-10 rounded-lg bg-amber-600/30 border border-amber-500/30 flex items-center justify-center text-amber-300 group-hover:scale-110 transition-transform">
-            <Paintbrush className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-lg bg-violet-600/30 border border-violet-500/30 flex items-center justify-center text-violet-300 group-hover:scale-110 transition-transform">
+            <Search className="w-5 h-5" />
           </div>
           <span className="text-[10px] font-bold text-white tracking-tight mt-1.5 drop-shadow-sm leading-tight truncate w-full">
-            Paint_App
+            Search_OS
           </span>
         </div>
 
@@ -643,7 +534,7 @@ export default function RetroDesktop({
                     {win.id === "bio" && <User className="w-3.5 h-3.5 text-violet-400" />}
                     {win.id === "projects" && <Folder className="w-3.5 h-3.5 text-emerald-400" />}
                     {win.id === "arcade" && <Gamepad2 className="w-3.5 h-3.5 text-rose-400" />}
-                    {win.id === "canvas" && <Paintbrush className="w-3.5 h-3.5 text-amber-400" />}
+                    {win.id === "search" && <Search className="w-3.5 h-3.5 text-violet-400" />}
                     {win.id === "terminal" && <Terminal className="w-3.5 h-3.5 text-slate-400" />}
                     {win.id === "settings" && <Settings className="w-3.5 h-3.5 text-blue-400" />}
                     <span className="font-mono text-[11px] font-semibold">{win.title}</span>
@@ -677,8 +568,8 @@ export default function RetroDesktop({
                   onClick={() => focusWindow(win.id)}
                   className="p-4 bg-slate-950 font-sans text-xs text-slate-200 overflow-y-auto"
                   style={{
-                    height: win.isMaximized ? "100%" : win.id === "arcade" || win.id === "canvas" ? "380px" : "320px",
-                    width: win.isMaximized ? "100%" : win.id === "arcade" ? "420px" : win.id === "projects" ? "520px" : "380px",
+                    height: win.isMaximized ? "100%" : win.id === "arcade" ? "450px" : win.id === "search" ? "380px" : "320px",
+                    width: win.isMaximized ? "100%" : win.id === "arcade" ? "620px" : win.id === "projects" || win.id === "search" ? "520px" : "380px",
                   }}
                 >
                   {/* CASE 1: BIOGRAPHY TEXT FILE NOTEPAD */}
@@ -760,150 +651,163 @@ export default function RetroDesktop({
                     </div>
                   )}
 
-                  {/* CASE 3: RETRO ARCADE CABINET (Snake Game instance) */}
+                  {/* CASE 3: VODEX VIBES GAME INTERACTIVE CONSOLE */}
                   {win.id === "arcade" && (
-                    <div className="flex flex-col items-center justify-between h-full font-mono bg-black text-emerald-400 rounded-lg p-3 relative overflow-hidden">
-                      {/* Ambient arcade retro monitor border sheen lines */}
-                      <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent pointer-events-none" />
-
-                      <div className="w-full flex justify-between items-center text-[10px] pb-2 border-b border-emerald-950/80">
-                        <div className="flex items-center gap-1 text-rose-500">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                          <span>ARCADE_UNIT_ONLINE</span>
+                    <div className="flex flex-col h-full font-sans bg-slate-950 text-slate-100 rounded-lg p-3 relative overflow-hidden">
+                      {/* Top status bar */}
+                      <div className="flex justify-between items-center text-[10px] font-mono border-b border-slate-900 pb-2 shrink-0">
+                        <div className="flex items-center gap-1.5 text-emerald-400">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                          <span>VODEX_SYSTEM_CONNECTED</span>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <span>SCORE: <strong className="text-white text-xs">{gameScore}</strong></span>
-                          <span>HI-SCORE: <span className="text-slate-400">{gameHighScore}</span></span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-violet-400 font-bold">MODE: FULL INTERACTIVE STREAM</span>
                         </div>
                       </div>
 
-                      {/* Actual Pixel/Grid gameboard canvas box */}
-                      <div className="w-full h-[220px] bg-slate-950 border-2 border-slate-900 rounded-lg relative flex flex-col items-center justify-center overflow-hidden my-2">
-                        {gameState === "IDLE" && (
-                          <div className="text-center space-y-3 z-10 px-4">
-                            <h4 className="text-sm font-bold text-white uppercase tracking-wider animate-pulse">
-                              🎮 READY PLAYER ONE
-                            </h4>
-                            <p className="text-[10px] text-slate-400 leading-normal font-sans max-w-xs">
-                              Interactive game inspired by Joan's Arcade machine setup! Control the snake using your keyboard's arrow keys. Eat vectors to level up.
-                            </p>
-                            <button
-                              onClick={resetSnakeGame}
-                              className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] uppercase font-bold transition-all shadow-lg active:scale-95 cursor-pointer"
-                            >
-                              Insert Coin & Start
-                            </button>
-                          </div>
-                        )}
-
-                        {gameState === "PLAYING" && (
-                          <div className="w-full h-full relative" style={{ display: "grid", gridTemplateColumns: `repeat(${gridWidth}, 1fr)`, gridTemplateRows: `repeat(${gridHeight}, 1fr)` }}>
-                            {/* Food voxel */}
-                            <div
-                              style={{
-                                gridColumnStart: food.x + 1,
-                                gridRowStart: food.y + 1,
-                              }}
-                              className="bg-rose-500 rounded-full animate-pulse shadow-md shadow-rose-500/40"
-                            />
-
-                            {/* Snake nodes */}
-                            {snake.map((segment, idx) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  gridColumnStart: segment.x + 1,
-                                  gridRowStart: segment.y + 1,
-                                }}
-                                className={`${
-                                  idx === 0 
-                                    ? "bg-emerald-400 rounded-sm shadow-md"
-                                    : "bg-emerald-600/90 rounded-sm"
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        )}
-
-                        {gameState === "OVER" && (
-                          <div className="text-center space-y-3 z-10 px-4">
-                            <h4 className="text-lg font-bold text-rose-500 uppercase tracking-widest">
-                              👾 GAME OVER
-                            </h4>
-                            <p className="text-xs text-slate-400 font-mono">
-                              Final Score Metric: <strong className="text-white">{gameScore}</strong>
-                            </p>
-                            <button
-                              onClick={resetSnakeGame}
-                              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] uppercase font-bold transition-all active:scale-95 cursor-pointer"
-                            >
-                              Try Again
-                            </button>
-                          </div>
-                        )}
+                      {/* Interactive frame or launcher card */}
+                      <div className="grow bg-slate-900 border border-slate-800 rounded-lg relative flex flex-col items-center justify-center overflow-hidden my-2 group min-h-[220px]">
+                        {/* Elegant custom loader backdrop */}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(139,92,246,0.12)_0%,transparent_100%)] pointer-events-none" />
+                        
+                        {/* High fidelity interactive iframe */}
+                        <iframe 
+                          src="https://vodex-vibes-stack-db213139.vercel.app/"
+                          title="Vodex Vibes Studio Stack"
+                          className="w-full h-full border-0 bg-slate-950 z-10"
+                          referrerPolicy="no-referrer"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
                       </div>
 
-                      <div className="w-full text-center text-[9px] text-slate-500 border-t border-slate-900 pt-1">
-                        Use <strong className="text-slate-400">Arrow Keys</strong> to pilot the snake vectors.
+                      {/* Footer console action toolbar */}
+                      <div className="flex justify-between items-center text-[11px] font-mono border-t border-slate-900 pt-2 shrink-0">
+                        <span className="text-slate-500">🎮 Play directly in the console space</span>
+                        
+                        <a 
+                          href="https://vodex-vibes-stack-db213139.vercel.app/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="px-2.5 py-1 bg-violet-600 hover:bg-violet-500 text-white font-bold rounded flex items-center gap-1 hover:shadow-lg transition-all"
+                        >
+                          <span>Open in New Tab</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
                       </div>
                     </div>
                   )}
 
-                  {/* CASE 4: PAINT APPS AND DYNAMIC CANVAS */}
-                  {win.id === "canvas" && (
-                    <div className="flex flex-col h-full font-mono">
-                      <div className="flex justify-between items-center pb-2 mb-2 border-b border-slate-900 text-[10px] text-slate-400">
-                        <span>PIXEL CANVAS WORKSPACE</span>
-                        <span>BRUSH: <strong className="text-white">{brushSize}px</strong></span>
+                  {/* CASE 4: DYNAMIC SEARCH PREVIEW TAB */}
+                  {win.id === "search" && (
+                    <div className="space-y-4 font-sans text-xs text-slate-200">
+                      <div className="flex justify-between items-center border-b border-slate-900 pb-2">
+                        <span className="text-[10px] text-slate-500 font-mono">SEARCH ENGINE CLIENT v1.2</span>
+                        <span className="text-[10px] text-emerald-400 font-mono uppercase font-bold">Query: "{terminalSearchQuery || 'None'}"</span>
                       </div>
-
-                      {/* Toolbox layout */}
-                      <div className="flex flex-wrap gap-2 items-center justify-between bg-slate-900 p-2.5 rounded-lg border border-slate-800/80 mb-2 shrink-0">
-                        <div className="flex gap-1.5">
-                          {colorsPalette.map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => setPaintColor(color)}
-                              style={{ backgroundColor: color }}
-                              className={`w-4 h-4 rounded-full border cursor-pointer active:scale-90 transition-all ${
-                                paintColor === color ? "border-white border-2 scale-110" : "border-slate-800"
-                              }`}
-                              title={color}
-                            />
-                          ))}
+                      
+                      {!terminalSearchQuery ? (
+                        <div className="text-center py-10 text-slate-400 space-y-3">
+                          <Search className="w-8 h-8 text-slate-500 mx-auto opacity-40" />
+                          <p className="font-mono text-[11px]">System is idle. Type query directly into command terminal to begin scanning catalog.</p>
                         </div>
-
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="range"
-                            min="2"
-                            max="12"
-                            value={brushSize}
-                            onChange={(e) => setBrushSize(Number(e.target.value))}
-                            className="w-16 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer"
-                          />
-                          <button
-                            onClick={clearPaintCanvas}
-                            className="bg-slate-950 p-1 px-2.5 rounded border border-slate-800 hover:border-amber-500/40 text-[9px] font-bold text-amber-400 hover:text-white transition-colors"
-                          >
-                            Clear App
-                          </button>
+                      ) : terminalSearchResults.length === 0 ? (
+                        <div className="text-center py-6 text-slate-400 space-y-3 font-mono">
+                          <p className="text-xs font-bold text-rose-400">Zero Local Matches Found</p>
+                          <p className="text-[10px] text-slate-400 leading-relaxed">No matching projects matched "{terminalSearchQuery}". All searches are restricted to local portfolio products.</p>
+                          
+                          <div className="bg-slate-900 border border-slate-800 p-3.5 rounded-xl text-left space-y-2 mt-2">
+                            <span className="text-[10px] uppercase tracking-wider text-slate-500 font-bold">Suggested Project Keywords:</span>
+                            <div className="grid grid-cols-2 gap-2 text-[11px]">
+                              <button 
+                                onClick={() => {
+                                  const matches = projects.filter(p => p.title.toLowerCase().includes("port"));
+                                  setTerminalSearchQuery("port");
+                                  setTerminalSearchResults(matches);
+                                }}
+                                className="text-left text-violet-400 hover:text-violet-300 transition-colors bg-slate-950 p-1.5 rounded border border-slate-800/60"
+                              >
+                                🔍 "port" (Port Scanner)
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  const matches = projects.filter(p => p.title.toLowerCase().includes("mind"));
+                                  setTerminalSearchQuery("mind");
+                                  setTerminalSearchResults(matches);
+                                }}
+                                className="text-left text-violet-400 hover:text-violet-300 transition-colors bg-slate-950 p-1.5 rounded border border-slate-800/60"
+                              >
+                                🎯 "mind" (Wellness Hub)
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  const matches = projects.filter(p => p.title.toLowerCase().includes("delay"));
+                                  setTerminalSearchQuery("delay");
+                                  setTerminalSearchResults(matches);
+                                }}
+                                className="text-left text-violet-400 hover:text-violet-300 transition-colors bg-slate-950 p-1.5 rounded border border-slate-800/60"
+                              >
+                                🎛️ "delay" (DSP Audio)
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  const matches = projects.filter(p => p.title.toLowerCase().includes("vibes"));
+                                  setTerminalSearchQuery("vibes");
+                                  setTerminalSearchResults(matches);
+                                }}
+                                className="text-left text-violet-400 hover:text-violet-300 transition-colors bg-slate-950 p-1.5 rounded border border-slate-800/60"
+                              >
+                                📻 "vibes" (Vodex Studio)
+                              </button>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* Physical Canvas Board container */}
-                      <div className="grow bg-slate-950 rounded-lg border-2 border-slate-900 overflow-hidden relative">
-                        <canvas
-                          ref={paintCanvasRef}
-                          width={380}
-                          height={200}
-                          onMouseDown={handlePaintStart}
-                          onMouseMove={handlePaintMove}
-                          onMouseUp={() => setIsPainting(false)}
-                          onMouseLeave={() => setIsPainting(false)}
-                          className="w-full h-full cursor-crosshair block"
-                        />
-                      </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <p className="text-[11px] text-slate-400 font-mono">Indexed matches returned below:</p>
+                          <div className="space-y-3">
+                            {terminalSearchResults.map((proj) => (
+                              <div key={proj.id} className="bg-slate-900 p-3 rounded-xl border border-slate-800 space-y-2 hover:border-violet-500/40 transition-colors">
+                                <div className="flex justify-between items-center gap-2">
+                                  <h4 className="font-bold text-white text-xs">{proj.title}</h4>
+                                  <div className="flex gap-1.5">
+                                    {proj.links.live && (
+                                      <a 
+                                        href={proj.links.live} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="text-[10px] font-mono text-emerald-400 hover:text-emerald-350 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20"
+                                      >
+                                        <span>Demo</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    )}
+                                    {proj.links.github && (
+                                      <a 
+                                        href={proj.links.github} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="text-[10px] font-mono text-pink-400 hover:text-pink-350 flex items-center gap-1 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20"
+                                      >
+                                        <span>Code</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-[11px] text-slate-400 leading-relaxed">{proj.description}</p>
+                                <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-900 text-[9px] text-slate-500 font-mono">
+                                  {proj.tech.map((t, idx) => (
+                                    <span key={idx} className="bg-slate-950 px-1.5 py-0.5 rounded">
+                                      {t}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -1075,15 +979,15 @@ export default function RetroDesktop({
                     className="w-full text-left p-1.5 rounded-lg hover:bg-white/5 active:bg-violet-600 text-white flex items-center gap-2"
                   >
                     <Gamepad2 className="w-3.5 h-3.5 text-rose-400" />
-                    <span>Snake Arcade Cabinet</span>
+                    <span>Vodex Vibes Studio</span>
                   </button>
 
                   <button
-                    onClick={() => { setIsStartOpen(false); openWindow("canvas"); }}
+                    onClick={() => { setIsStartOpen(false); openWindow("search"); }}
                     className="w-full text-left p-1.5 rounded-lg hover:bg-white/5 active:bg-violet-600 text-white flex items-center gap-2"
                   >
-                    <Paintbrush className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Visual Paint App</span>
+                    <Search className="w-3.5 h-3.5 text-violet-400" />
+                    <span>Search Engine OS</span>
                   </button>
 
                   <button
@@ -1134,7 +1038,7 @@ export default function RetroDesktop({
                 {win.id === "bio" && <User className="w-3 h-3 text-violet-400 shrink-0" />}
                 {win.id === "projects" && <Folder className="w-3 h-3 text-emerald-400 shrink-0" />}
                 {win.id === "arcade" && <Gamepad2 className="w-3 h-3 text-rose-400 shrink-0" />}
-                {win.id === "canvas" && <Paintbrush className="w-3 h-3 text-amber-400 shrink-0" />}
+                {win.id === "search" && <Search className="w-3 h-3 text-violet-400 shrink-0" />}
                 {win.id === "terminal" && <Terminal className="w-3 h-3 text-slate-400 shrink-0" />}
                 {win.id === "settings" && <Settings className="w-3 h-3 text-blue-400 shrink-0" />}
                 <span className="truncate">{win.title}</span>

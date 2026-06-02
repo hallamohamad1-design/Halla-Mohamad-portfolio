@@ -15,10 +15,27 @@ export default function InteractiveDSPDelay() {
   const [delayTime, setDelayTime] = useState(0.4); // 0.1s to 1.0s
   const [feedback, setFeedback] = useState(0.6); // 10% to 95%
   const [volume, setVolume] = useState(0.5); // 0 to 1
+  const [preset, setPreset] = useState<string>("custom");
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [activeNotes, setActiveNotes] = useState<string[]>([]);
   const [echoes, setEchoes] = useState<EchoState[]>([]);
   const [echoTimeline, setEchoTimeline] = useState<number[]>([]);
+
+  // Presets definition
+  const presets: { [key: string]: { name: string; delayTime: number; feedback: number } } = {
+    dub: { name: "Dub Echo", delayTime: 0.75, feedback: 0.75 },
+    slapback: { name: "Short Slapback", delayTime: 0.15, feedback: 0.15 },
+    hall: { name: "Hall Reverb", delayTime: 0.35, feedback: 0.50 },
+    infinite: { name: "Infinite Feedback", delayTime: 0.50, feedback: 0.82 },
+  };
+
+  const handlePresetChange = (presetKey: string) => {
+    setPreset(presetKey);
+    if (presetKey !== "custom" && presets[presetKey]) {
+      setDelayTime(presets[presetKey].delayTime);
+      setFeedback(presets[presetKey].feedback);
+    }
+  };
   
   // Web Audio refs
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -220,6 +237,22 @@ export default function InteractiveDSPDelay() {
             <span>Digital Signal parameters</span>
           </div>
 
+          {/* Presets dropdown */}
+          <div className="space-y-1.5">
+            <label className="text-[10.5px] text-slate-400 font-mono block">Preset Profile:</label>
+            <select
+              value={preset}
+              onChange={(e) => handlePresetChange(e.target.value)}
+              className="w-full bg-slate-950 text-slate-200 text-xs font-mono py-1.5 px-2.5 rounded-lg border border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/20 active:outline-none focus:outline-none transition-all cursor-pointer"
+            >
+              <option value="custom">-- Custom Settings --</option>
+              <option value="dub">Dub Echo 🌊</option>
+              <option value="slapback">Short Slapback ⚡</option>
+              <option value="hall">Hall Reverb 🏛️</option>
+              <option value="infinite">Infinite Feedback 🚀</option>
+            </select>
+          </div>
+
           {/* Synth Select type */}
           <div className="space-y-1.5">
             <span className="text-[10.5px] text-slate-400 font-mono">Analog Oscillator Wave:</span>
@@ -252,7 +285,10 @@ export default function InteractiveDSPDelay() {
               max="1.2"
               step="0.05"
               value={delayTime}
-              onChange={(e) => setDelayTime(Number(e.target.value))}
+              onChange={(e) => {
+                setDelayTime(Number(e.target.value));
+                setPreset("custom");
+              }}
               className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-violet-500"
             />
           </div>
@@ -267,9 +303,12 @@ export default function InteractiveDSPDelay() {
               type="range"
               min="0.1"
               max="0.85"
-              step="y.05"
+              step="0.05"
               value={feedback}
-              onChange={(e) => setFeedback(Number(e.target.value))}
+              onChange={(e) => {
+                setFeedback(Number(e.target.value));
+                setPreset("custom");
+              }}
               className="w-full h-1 bg-slate-900 rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
           </div>
