@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { ExternalLink, Github, Link2, FileSpreadsheet, AppWindow, Code2, Terminal, Cpu, Database, ChevronRight } from "lucide-react";
+import { ExternalLink, Github, Link2, FileSpreadsheet, AppWindow, Code2, Terminal, Cpu, Database, ChevronRight, Figma } from "lucide-react";
 import { Project } from "../types";
 
 interface Project3DCardProps {
@@ -206,6 +206,19 @@ export default function Project3DCard({ project }: Project3DCardProps) {
               >
                 <Github className="w-3.5 h-3.5" />
                 <span>Code</span>
+              </a>
+            )}
+
+            {project.links.figma && (
+              <a
+                href={project.links.figma}
+                target="_blank"
+                rel="noreferrer"
+                className="p-2 bg-slate-950 hover:bg-slate-800 text-slate-200 hover:text-white rounded-lg border border-slate-800 hover:border-violet-500/40 transition-all flex items-center gap-1.5 text-xs font-mono"
+                title="View Figma Design System"
+              >
+                <Figma className="w-3.5 h-3.5 text-violet-400" />
+                <span>Design</span>
               </a>
             )}
 

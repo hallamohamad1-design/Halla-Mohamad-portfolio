@@ -152,6 +152,7 @@ export default function App() {
       detailedDescription: "Synthesizes complex computer networking theory (SYN, SYN-ACK, ACK exchanges) into high-end intuitive graphics. Demonstrates the step-by-step lifecycle of connection flags and sequence tracking.",
       tech: ["React", "Framer Motion", "Fira Code", "CSS Animation Nodes"],
       links: {
+        live: "https://network-halla.vercel.app/",
         github: "https://github.com/hallamohamad1-design"
       },
       features: [
@@ -213,6 +214,24 @@ export default function App() {
         "Intuitive parameter dialing dials (Time, Feedback Gain)."
       ],
       role: "DSP System Programmer"
+    },
+    {
+      id: "auracare",
+      title: "AuraCare (AI Wellness & Clinical Therapy Workspace)",
+      category: "uiux",
+      description: "A comprehensive high-fidelity mobile workspace design system created to synchronize neuro-linguistic self-recovery tracking with calming therapist telemetry.",
+      detailedDescription: "Designed an entire pixel-perfect modular blueprint containing 120+ micro-interaction states, dynamic wellness radar charts, responsive emotion grids, and real-time biometric mock-integrations with strict modern accessibility/A11y palette standards.",
+      tech: ["Figma Prototyping", "Design Systems", "UX Research", "A11y Standards"],
+      links: {
+        figma: "https://www.figma.com/design/Lg8v2M9I1Tz7YnL1/AuraCare-Mental-Wellness-UX-Case-Study",
+        github: "https://github.com/hallamohamad1-design"
+      },
+      features: [
+        "120+ pixel-perfect customizable component tokens with seamless light/dark responsive adapters",
+        "Accessible contrast-verified sensory calming layout styles designed to mitigate anxiety patterns",
+        "Highly engaging therapeutic wellness tracking radar configurations and interactive emotion widgets"
+      ],
+      role: "Solo UX/UI Designer & Brand Visionary"
     },
     {
       id: "charity",

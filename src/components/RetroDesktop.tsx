@@ -18,6 +18,7 @@ import {
   ChevronRight,
   ExternalLink,
   Github,
+  Figma,
   Award,
   Briefcase,
   GraduationCap,
@@ -628,6 +629,11 @@ export default function RetroDesktop({
                                     <Github className="w-3 h-3" />
                                   </a>
                                 )}
+                                {proj.links.figma && (
+                                  <a href={proj.links.figma} target="_blank" rel="noreferrer" className="hover:text-violet-400 text-slate-500 transition-colors" title="Figma design file">
+                                    <Figma className="w-3 h-3" />
+                                  </a>
+                                )}
                               </div>
                             </div>
                             <div>
@@ -790,6 +796,17 @@ export default function RetroDesktop({
                                         className="text-[10px] font-mono text-pink-400 hover:text-pink-350 flex items-center gap-1 bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20"
                                       >
                                         <span>Code</span>
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    )}
+                                    {proj.links.figma && (
+                                      <a 
+                                        href={proj.links.figma} 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="text-[10px] font-mono text-violet-400 hover:text-violet-350 flex items-center gap-1 bg-violet-500/10 px-2 py-0.5 rounded border border-violet-500/20"
+                                      >
+                                        <span>Design</span>
                                         <ExternalLink className="w-2.5 h-2.5" />
                                       </a>
                                     )}
