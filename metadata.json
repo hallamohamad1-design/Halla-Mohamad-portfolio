@@ -1,0 +1,6 @@
+{
+  "name": "Halla Mohamed Portfolio",
+  "description": "Interactive showcase of AI Engineering and UI/UX projects by Halla Mohamed Abd Elmoniem, featuring interactive simulators, project dashboards, and polished design case studies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
